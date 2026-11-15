@@ -1,0 +1,17 @@
+{
+  "name": "sorted-mobile-prototype",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1",
+    "start": "node --env-file-if-exists=.env.local server/index.js",
+    "publish:check": "node scripts/publish-github.mjs --check",
+    "publish:github": "node scripts/publish-github.mjs",
+    "test": "node --test src/model.test.js src/organize.test.js server/ai.test.js"
+  },
+  "dependencies": { "react": "^19.2.0", "react-dom": "^19.2.0" },
+  "devDependencies": { "vite": "^7.2.2" }
+}
