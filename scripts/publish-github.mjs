@@ -40,6 +40,7 @@ for (const name of candidates) {
   assert.ok(!/(^|\/)(?:node_modules|dist|\.publish-tmp)\//.test(name), `Build/cache file tracked: ${name}`);
   assert.ok(!/(^|\/)\.env(?:\..*)?$/.test(name) || name === '.env.example', `Private environment file tracked: ${name}`);
   const data = readFileSync(resolve(root, name), 'utf8');
+  if (name.endsWith('.md')) assert.ok(!/^(?:<<<<<<< |=======\r?$|>>>>>>> )/m.test(data), `Unresolved merge markers in ${name}.`);
   assert.ok(!/AIza[0-9A-Za-z_-]{25,}|gh[pousr]_[0-9A-Za-z]{25,}|github_pat_[0-9A-Za-z_]{25,}/.test(data), `Possible credential in ${name}; remove it before publishing.`);
 }
 assert.ok(existsSync(resolve(root, '.github/workflows/pages.yml')));
@@ -50,7 +51,14 @@ run('gh', ['auth', 'status']);
 const repository = JSON.parse(run('gh', ['repo', 'view', repo, '--json', 'nameWithOwner,defaultBranchRef,hasIssuesEnabled'], true));
 assert.equal(repository.nameWithOwner.toLowerCase(), repo.toLowerCase());
 assert.equal(run('git', ['branch', '--show-current'], true), 'main', 'Switch to main before publishing.');
-assert.ok(!existsSync(resolve(root, '.git/MERGE_HEAD')), 'Resolve and commit the existing merge before publishing.');
+if (existsSync(resolve(root, '.git/MERGE_HEAD'))) {
+  const unresolved = run('git', ['diff', '--name-only', '--diff-filter=U'], true).split('\n').filter(Boolean);
+  assert.ok(unresolved.every(name => name === 'README.md'), 'Resolve the pending merge before publishing.');
+  const readme = readFileSync(resolve(root, 'README.md'), 'utf8');
+  assert.ok(!/^(?:<<<<<<< |=======\r?$|>>>>>>> )/m.test(readme), 'Resolve README merge markers before publishing.');
+  if (unresolved.length) run('git', ['add', '--', 'README.md']);
+  run('git', ['commit', '--no-edit']);
+}
 run('git', ['add', '--', '.env.example', '.gitignore', 'AGENTS.md', 'README.md', 'index.html', 'package.json', 'package-lock.json', 'src', 'server', 'docs', '.github', 'scripts', ...readdirSync(root).filter(name => name.endsWith('.docx'))]);
 if (attempt('git', ['diff', '--cached', '--quiet']).status !== 0) run('git', ['commit', '-m', 'feat: add Sorted task planner and client demonstration']);
 assert.equal(run('git', ['status', '--porcelain'], true), '', 'Resolve remaining local changes before publishing.');
