@@ -12,7 +12,7 @@ Authoritative product requirements: [docs/PRD.md](docs/PRD.md) and `Sorted — B
 | --- | --- |
 | `Sorted — Business Requirements Document v1.3.docx` | Client BRD reference |
 | `docs/PRD.md` | Consolidated requirements (client V1 + labeled AI extras) |
-| `src/` | **Vite React UX prototype only** — not production V1 |
+| `src/` | **Frozen** Vite UX reference — **no active development**; port ideas into the React Native app |
 | `server/` | Optional loopback Gemini backend for prototype AI demos |
 | `.github/next-work/` | Planned native Android work (reminders, calendar, foundation, etc.) |
 | `docs/AI_SETUP.md` | Local prototype AI configuration |

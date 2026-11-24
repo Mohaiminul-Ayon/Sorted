@@ -1,6 +1,8 @@
 {
   "repository": "Mohaiminul-Ayon/Sorted",
   "milestone": "Pilot (React Native V1)",
+  "activeTrack": "pilot-only",
+  "prototypeStatus": "frozen-reference",
   "pilotThroughOrder": 8,
   "features": [
     { "name": "Manual task creation", "branch": "feature/manual-task-creation", "phase": "prototype", "prototypeOrder": 1, "githubIssue": 13 },

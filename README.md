@@ -1,11 +1,10 @@
 # Sorted
 
-**Turn scattered messages into a plan you can review—or create every task yourself.**
+**Client V1:** offline **React Native Android** task app (see [docs/PRD.md](docs/PRD.md) and [docs/PILOT_WORKFLOW.md](docs/PILOT_WORKFLOW.md)). Delivery is **issue-by-issue** on `feature/android-*` branches—not the browser demo.
 
-Sorted helps professionals manage work and personal commitments without holding everything in their heads. It separates things ready to do from things needing thought and ideas for later, with calm language and an explicit save step for generated proposals.
+The `src/` Vite app is **frozen reference** only. Active development targets the installable mobile product.
 
-**Repository:** [Mohaiminul-Ayon/Sorted](https://github.com/Mohaiminul-Ayon/Sorted)  
-**GitHub Pages deployment target:** [mohaiminul-ayon.github.io/Sorted/](https://mohaiminul-ayon.github.io/Sorted/) — available after the Pages workflow succeeds; initial publication is not yet verified.
+**Repository:** [Mohaiminul-Ayon/Sorted](https://github.com/Mohaiminul-Ayon/Sorted)
 
 ## What you can demonstrate
 
@@ -99,11 +98,11 @@ npm run preview  # Preview the static build
 
 Restricted environments may block Vite's optimiser or outbound AI traffic. Test the live provider from a terminal with appropriate network access.
 
-## Publishing and planned work
+## Planned work (client)
 
-The [Pages workflow](.github/workflows/pages.yml) tests and builds the `/Sorted/` static demo on main. Enable GitHub Actions as the Pages source. It receives no Gemini secret. See [publishing instructions](docs/PUBLISHING.md).
+Follow [pilot order](docs/PILOT_WORKFLOW.md): start with GitHub issue **#2** on `feature/android-foundation`. Native feature acceptance lives under [.github/next-work](.github/next-work). Pilot issue ↔ branch map: [.github/features.json](.github/features.json).
 
-Feature-area branches are listed in [.github/features.json](.github/features.json). They start at the same baseline; their names do not imply unfinished features are implemented. Next-work issues and acceptance criteria live under [.github/next-work](.github/next-work).
+The legacy [Pages workflow](.github/workflows/pages.yml) and [publishing](docs/PUBLISHING.md) docs apply only to the frozen prototype; do not treat Pages as the product milestone.
 
 ## Current boundaries
 

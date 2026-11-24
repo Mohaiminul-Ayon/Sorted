@@ -249,14 +249,13 @@ Items **3, 4, 5, 7, 11** should be closed before production release.
 
 ---
 
-## 9. Vite React prototype (not the product)
+## 9. Vite React prototype (frozen reference)
 
-The repository includes a **browser prototype** (`src/`, Vite, optional Node AI server) and optional GitHub Pages demo. Purpose:
+The repository retains a **browser prototype** (`src/`, Vite, optional Node AI server). **No further prototype investment**—all engineering targets the React Native client app.
 
-- Clickable UX spec: navigation, copy tone, task states, review flows
-- Logic reference: `src/model.js` (lifecycle, exports), `src/organize.js` (scheduling checks)
+Use only for: navigation/copy tone, and logic hints in `src/model.js` / `src/organize.js` when porting to native.
 
-**Not acceptable as V1 delivery:** `localStorage` persistence, phone-frame CSS, in-app attention filters without native notifications, presenting Pages as the client app.
+**Not acceptable as V1 delivery:** browser persistence, phone-frame UI, in-app attention without native notifications, GitHub Pages as the product.
 
 ---
 

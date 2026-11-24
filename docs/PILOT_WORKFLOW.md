@@ -1,6 +1,10 @@
 # Sorted pilot workflow (PR-by-PR)
 
-Production target: **React Native Android** per [PRD.md](PRD.md) v2.0. The Vite app in `src/` is a UX prototype only.
+Production target: **React Native Android** per [PRD.md](PRD.md) v2.0.
+
+**Active work:** client **pilot issues only** (#2–#12 per table below). Do **not** open PRs for `feature/manual-task-creation`, GitHub Pages, or other prototype branches unless the owner explicitly restarts the web demo.
+
+The Vite app in `src/` is **frozen reference** (copy/logic hints). It is not the delivery vehicle.
 
 ## How we ship
 
@@ -33,11 +37,7 @@ Work **in this order** until the pilot milestone is complete. Issue numbers refe
 
 **Pilot complete when:** orders 1–8 pass acceptance on three devices and export matches PRD section 11.
 
-## Prototype parity branches (reference UI)
-
-These branches exist for the **browser demo** and UX reference. Each has a GitHub issue labeled `prototype`. Merge into `main` only when the change supports the prototype spec—not as a substitute for Android work.
-
-See `prototypeOrder` in [.github/features.json](../.github/features.json).
+**Final product = pilot complete + owner sign-off** on BRD open items. Prototype/demo work is out of scope for the current plan.
 
 ## Client open decisions (blockers)
 
