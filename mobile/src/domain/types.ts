@@ -74,9 +74,20 @@ export type Settings = {
   notificationListenerEnabled: boolean;
   retainAiContext: boolean;
   onboarded: boolean;
+  lastExportAt: string | null;
+  notificationsEnabled: boolean;
+  inboxSkipUntil: string | null;
 };
 
-export type ReviewState = { sessions: number; startedAt: string | null };
+export type ReviewState = {
+  sessions: number;
+  startedAt: string | null;
+  pausedAt: string | null;
+  elapsedMs: number;
+  sessionIds: string[] | null;
+  decisions: string[];
+  lastSomedayAt: string | null;
+};
 
 export type ExportDocument = {
   schemaVersion: 1;
@@ -97,6 +108,23 @@ export const DEFAULT_SETTINGS: Settings = {
   notificationListenerEnabled: false,
   retainAiContext: true,
   onboarded: false,
+  lastExportAt: null,
+  notificationsEnabled: false,
+  inboxSkipUntil: null,
 };
+
+export const DEFAULT_REVIEW: ReviewState = {
+  sessions: 0,
+  startedAt: null,
+  pausedAt: null,
+  elapsedMs: 0,
+  sessionIds: null,
+  decisions: [],
+  lastSomedayAt: null,
+};
+
+export function normalizeReview(raw: Partial<ReviewState> | null | undefined): ReviewState {
+  return { ...DEFAULT_REVIEW, ...raw };
+}
 
 export const SCHEMA_VERSION = 1 as const;

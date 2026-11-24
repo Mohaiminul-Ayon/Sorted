@@ -14,3 +14,9 @@ A 3 PM office visit prompts the user at its slot. They can complete, reschedule 
 - Persist Done, Reschedule, Snooze and category-change actions.
 - Restore after reboot; test Doze, denied permissions and battery restrictions.
 - Verify on at least three device brands and record results. The current UI-only attention filter is not a reminder implementation.
+
+## Implementation (code-complete)
+
+- `planReminders` schedules Inbox (3/day), slot start, evening summary, weekend review, Someday-due, and calendar nudge. Quiet hours shift fires; Work projects wait for working hours.
+- `expo-notifications` DATE triggers on channel `sorted-quiet`, categories Done / Snooze / New time / Place. Permission is requested from Home, not at launch. App resume and process start reschedule the queue (covers reboot once the process runs; OEM Doze still needs device logs).
+- Inbox skip is a two-step confirm that sets `inboxSkipUntil`.

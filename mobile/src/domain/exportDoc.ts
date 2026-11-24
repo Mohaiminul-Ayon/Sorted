@@ -2,7 +2,7 @@ import type { ExportDocument, Meeting, Project, ReviewState, Settings, Task } fr
 import { SCHEMA_VERSION } from './types';
 
 export function toCSV(tasks: Task[]): string {
-  const fields = ['id', 'title', 'state', 'priority', 'originalText', 'source', 'projectId', 'start', 'duration', 'energy'] as const;
+  const fields = ['id', 'title', 'state', 'priority', 'originalText', 'source', 'projectId', 'meetingId', 'start', 'duration', 'energy', 'calendarEventId'] as const;
   const cell = (value: unknown) => {
     const text = String(value ?? '');
     const safe = /^[\s]*[=+@-]/.test(text) || /^[\t\r\n]/.test(text) ? `'${text}` : text;

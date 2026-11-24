@@ -14,3 +14,7 @@ A user pauses an Important review for a call and resumes without repeated decisi
 - Preserve the first-three-unlimited rule and later 20-item cap.
 - Support grouped Someday decisions and partial postponement.
 - Connect automatic prompts after native reminders exist.
+
+## Implementation (code-complete)
+
+- Weekly session persists ids, pause vs active elapsed time, 15-minute cue, first-three unlimited then 20. Someday is grouped; a group can be postponed; interval defaults to 182 days (BRD #6).

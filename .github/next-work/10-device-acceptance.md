@@ -13,3 +13,5 @@ A screen-reader user can create/review tasks, and a large-text user can still re
 - Test narrow screens, large text, long context and errors.
 - Measure capture speed on mid-range devices.
 - Complete BRD section 9 checks on three Android brands and record results.
+
+Checklist: [docs/DEVICE_ACCEPTANCE.md](../../docs/DEVICE_ACCEPTANCE.md). TalkBack labels and 44dp targets are in the RN UI; three-OEM boxes stay empty until a device pass.

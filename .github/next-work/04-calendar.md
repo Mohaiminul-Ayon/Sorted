@@ -13,3 +13,7 @@ After approving “Meet Shafiq Sunday at 6 PM for 30 minutes,” the user can cr
 - Retain event IDs; updates/retries must not create duplicates.
 - Handle permission denial, deletion and DST/timezone changes.
 - Verify correct date, duration and linkage on devices.
+
+## Implementation (code-complete)
+
+- Calendar permission is requested only when adding a scheduled task. Default writable calendar is used (BRD #5 still open). If the stored event was deleted, Sorted recreates one event and keeps the new id.

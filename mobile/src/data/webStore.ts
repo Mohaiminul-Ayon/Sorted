@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import type { Meeting, Project, ReviewState, Settings, Task } from '../domain/types';
-import { DEFAULT_SETTINGS } from '../domain/types';
+import { DEFAULT_REVIEW, DEFAULT_SETTINGS, normalizeReview } from '../domain/types';
 import { APP_SCHEMA_VERSION } from '../domain/migrations';
 
 const KEY = 'sorted-web-plan-v1';
@@ -22,7 +22,7 @@ const empty = (): Snapshot => ({
   projects: [],
   meetings: [],
   settings: DEFAULT_SETTINGS,
-  review: { sessions: 0, startedAt: null },
+  review: DEFAULT_REVIEW,
   schemaVersion: APP_SCHEMA_VERSION,
   lastOpenedAt: new Date().toISOString(),
 });
@@ -37,6 +37,7 @@ export function readWebSnapshot(): Snapshot {
       ...empty(),
       ...parsed,
       settings: { ...DEFAULT_SETTINGS, ...parsed.settings },
+      review: normalizeReview(parsed.review),
       lastOpenedAt: new Date().toISOString(),
     };
   } catch {

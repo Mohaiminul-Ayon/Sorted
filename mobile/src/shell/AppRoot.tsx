@@ -6,6 +6,8 @@ import { MainTabs } from './navigation';
 import { OnboardingScreen } from '../features/onboarding/OnboardingScreen';
 import { CaptureSheet } from '../features/capture/CaptureSheet';
 import { ShareCaptureListener } from '../features/capture/ShareCaptureListener';
+import { TaskSheet } from '../features/tasks/TaskSheet';
+import { ReminderBridge } from '../features/reminders/ReminderBridge';
 import { colors } from '../ui/theme';
 
 function Gate() {
@@ -13,7 +15,7 @@ function Gate() {
   if (!ready) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
-        <ActivityIndicator color={colors.accent} />
+        <ActivityIndicator color={colors.accent} accessibilityLabel="Opening your plan" />
       </View>
     );
   }
@@ -38,8 +40,10 @@ function Gate() {
   return (
     <>
       <ShareCaptureListener />
+      <ReminderBridge />
       <MainTabs />
       <CaptureSheet />
+      <TaskSheet />
     </>
   );
 }

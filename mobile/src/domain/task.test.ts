@@ -47,7 +47,7 @@ test('CSV and JSON export match the data contract', () => {
     projects: [],
     meetings: [],
     settings: { ...DEFAULT_SETTINGS, onboarded: true },
-    review: { sessions: 0, startedAt: null },
+    review: { sessions: 0, startedAt: null, pausedAt: null, elapsedMs: 0, sessionIds: null, decisions: [], lastSomedayAt: null },
     exportedAt: '2026-11-25T00:00:00.000Z',
   });
   assertExportDocument(doc);
