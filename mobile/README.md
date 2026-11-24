@@ -4,12 +4,14 @@ Expo + TypeScript. Feature folders under `src/features/`. Domain rules in `src/d
 
 ```
 src/
-  app/           navigation, AppProvider
-  data/          SQLite schema and repositories
-  domain/        Task lifecycle, export JSON/CSV
+  app/           navigation, AppProvider (reload on resume)
+  data/          SQLite + schemaVersion migrations (never DROP tasks)
+  domain/        Task lifecycle, export JSON/CSV, offline copy
   features/      onboarding, capture, home, inbox, projects, review, settings
   ui/            theme
 ```
+
+Core capture and export work without a network. AI (later) shows a calm “Inbox still works” message when offline.
 
 ```powershell
 npm test

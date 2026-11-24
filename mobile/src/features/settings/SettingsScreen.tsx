@@ -7,9 +7,10 @@ import { toCSV, toExportDocument } from '../../domain/exportDoc';
 import { colors, space } from '../../ui/theme';
 import { Screen } from '../../ui/Screen';
 import { localDay } from '../../domain/task';
+import { aiRequiresNetworkMessage, offlineStatusLabel } from '../../domain/network';
 
 export function SettingsScreen() {
-  const { settings, tasks, projects, meetings, review } = useApp();
+  const { settings, tasks, projects, meetings, review, online, schemaVersion, lastOpenedAt } = useApp();
   const [message, setMessage] = useState('');
 
   const writeAndShare = async (filename: string, contents: string) => {
@@ -43,7 +44,9 @@ export function SettingsScreen() {
     <Screen>
       <Text style={styles.title}>Your space, your rhythm.</Text>
       <Text style={styles.body}>Weekend review: {settings.weekend}. Hours {settings.workStart}–{settings.workEnd}.</Text>
-      <Text style={styles.note}>There is no cloud backup. Export is your copy.</Text>
+      <Text style={styles.note}>{offlineStatusLabel(online)}. Schema {schemaVersion}. Last opened {lastOpenedAt ? new Date(lastOpenedAt).toLocaleString() : 'this session'}.</Text>
+      <Text style={styles.note}>There is no cloud backup. Export is your copy. App updates keep this SQLite file.</Text>
+      <Text style={styles.note}>{aiRequiresNetworkMessage()}</Text>
       <Pressable style={styles.primary} onPress={() => void exportJson()} accessibilityLabel="Export all data as JSON">
         <Text style={styles.primaryText}>Export all data · JSON</Text>
       </Pressable>

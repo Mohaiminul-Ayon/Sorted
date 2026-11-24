@@ -1,6 +1,6 @@
 # Support offline cold starts and safe application updates
 
-Priority: Medium · Branch: `feature/offline-loading`
+Priority: Medium · Branch: `feature/offline-loading` · GitHub issue **#7** · Pilot order **2**
 
 ## User experience and benefit
 

@@ -3,11 +3,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useApp } from '../../app/AppContext';
 import { CaptureSheet } from '../capture/CaptureSheet';
 import { localDay, needsAttention } from '../../domain/task';
+import { offlineStatusLabel } from '../../domain/network';
 import { colors, space } from '../../ui/theme';
 import { Screen } from '../../ui/Screen';
 
 export function HomeScreen() {
-  const { tasks, meetings } = useApp();
+  const { tasks, meetings, online } = useApp();
   const [open, setOpen] = useState(false);
   const inbox = tasks.filter((t) => !t.deleted && t.state === 'Inbox');
   const today = useMemo(
@@ -24,6 +25,7 @@ export function HomeScreen() {
     <Screen style={{ paddingHorizontal: 0, paddingTop: 0 }}>
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.eyebrow}>{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
+        <Text style={styles.device}>{offlineStatusLabel(online)}</Text>
         <Text style={styles.title}>A little less on your mind.</Text>
         <Pressable style={styles.capture} onPress={() => setOpen(true)} accessibilityLabel="Quick capture">
           <Text style={styles.captureTitle}>Capture a thought</Text>
@@ -59,6 +61,7 @@ export function HomeScreen() {
 const styles = StyleSheet.create({
   content: { padding: space.l, paddingBottom: 48 },
   eyebrow: { color: colors.accent, marginBottom: space.s },
+  device: { color: colors.leaf, marginBottom: space.s, fontSize: 14 },
   title: { fontSize: 28, color: colors.ink, fontWeight: '600', marginBottom: space.l },
   capture: { backgroundColor: colors.paper, padding: space.l, borderRadius: 18, marginBottom: space.l },
   captureTitle: { fontSize: 18, color: colors.ink, fontWeight: '600' },
