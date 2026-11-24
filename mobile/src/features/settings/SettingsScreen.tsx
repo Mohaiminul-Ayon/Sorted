@@ -9,9 +9,10 @@ import { colors, space } from '../../ui/theme';
 import { Screen } from '../../ui/Screen';
 import { localDay } from '../../domain/task';
 import { aiRequiresNetworkMessage, offlineStatusLabel } from '../../domain/network';
+import { exportIsStale } from '../../domain/exportHealth';
 
 export function SettingsScreen() {
-  const { settings, tasks, projects, meetings, review, online, schemaVersion, lastOpenedAt } = useApp();
+  const { settings, tasks, projects, meetings, review, online, schemaVersion, lastOpenedAt, markExported } = useApp();
   const [message, setMessage] = useState('');
   const [voiceLanguages, setVoiceLanguages] = useState('Voice languages load when this device supports recognition.');
 
@@ -48,7 +49,8 @@ export function SettingsScreen() {
     try {
       const doc = toExportDocument({ tasks, projects, meetings, settings, review });
       await writeAndShare(`sorted-${localDay()}.json`, JSON.stringify(doc, null, 2));
-      setMessage('Your export is ready. Keep it somewhere safe.');
+      await markExported();
+      setMessage('Your export is ready. Keep it somewhere safe. There is still no cloud copy.');
     } catch (e) {
       setMessage(e instanceof Error ? e.message : 'Export could not finish.');
     }
@@ -57,7 +59,8 @@ export function SettingsScreen() {
   const exportCsv = async () => {
     try {
       await writeAndShare(`sorted-${localDay()}.csv`, toCSV(tasks));
-      setMessage('Your export is ready. Keep it somewhere safe.');
+      await markExported();
+      setMessage('Your export is ready. Keep it somewhere safe. There is still no cloud copy.');
     } catch (e) {
       setMessage(e instanceof Error ? e.message : 'Export could not finish.');
     }
@@ -68,7 +71,8 @@ export function SettingsScreen() {
       <Text style={styles.title}>Your space, your rhythm.</Text>
       <Text style={styles.body}>Weekend review: {settings.weekend}. Hours {settings.workStart}–{settings.workEnd}.</Text>
       <Text style={styles.note}>{offlineStatusLabel(online)}. Schema {schemaVersion}. Last opened {lastOpenedAt ? new Date(lastOpenedAt).toLocaleString() : 'this session'}.</Text>
-      <Text style={styles.note}>There is no cloud backup. Export is your copy. App updates keep this SQLite file.</Text>
+      <Text style={styles.note}>There is no cloud backup. Export is your copy. App updates keep this SQLite file.{exportIsStale(settings.lastExportAt) ? ' A fresh export is due.' : ''}</Text>
+      <Text style={styles.note}>Quiet hours {settings.quietStart}–{settings.quietEnd}. Reminders {settings.notificationsEnabled ? 'on' : 'off'}.</Text>
       <Text style={styles.note}>{aiRequiresNetworkMessage()}</Text>
       <Text style={styles.note}>{voiceLanguages} Microphone access is requested only when you tap Speak.</Text>
       <Pressable style={styles.primary} onPress={() => void exportJson()} accessibilityLabel="Export all data as JSON">

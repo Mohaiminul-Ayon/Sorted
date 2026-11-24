@@ -13,18 +13,20 @@ export function OnboardingScreen() {
   const [weekend, setWeekend] = useState<Settings['weekend']>(settings.weekend);
   const [workStart, setWorkStart] = useState(settings.workStart);
   const [workEnd, setWorkEnd] = useState(settings.workEnd);
+  const [quietStart, setQuietStart] = useState(settings.quietStart);
+  const [quietEnd, setQuietEnd] = useState(settings.quietEnd);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
   const save = async () => {
-    if (!isClock(workStart) || !isClock(workEnd)) {
+    if (!isClock(workStart) || !isClock(workEnd) || !isClock(quietStart) || !isClock(quietEnd)) {
       setError('Use 24-hour times like 09:00.');
       return;
     }
     setBusy(true);
     setError('');
     try {
-      await completeOnboarding({ weekend, workStart, workEnd });
+      await completeOnboarding({ weekend, workStart, workEnd, quietStart, quietEnd });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not save your rhythm.');
       setBusy(false);
@@ -49,6 +51,12 @@ export function OnboardingScreen() {
         <Text style={styles.hours}>to</Text>
         <TextInput value={workEnd} onChangeText={setWorkEnd} style={styles.time} accessibilityLabel="Work end time" keyboardType="numbers-and-punctuation" />
       </View>
+      <Text style={styles.label}>Quiet hours</Text>
+      <View style={styles.row}>
+        <TextInput value={quietStart} onChangeText={setQuietStart} style={styles.time} accessibilityLabel="Quiet hours start" keyboardType="numbers-and-punctuation" />
+        <Text style={styles.hours}>to</Text>
+        <TextInput value={quietEnd} onChangeText={setQuietEnd} style={styles.time} accessibilityLabel="Quiet hours end" keyboardType="numbers-and-punctuation" />
+      </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Pressable
         style={[styles.primary, busy && styles.disabled]}
@@ -58,7 +66,7 @@ export function OnboardingScreen() {
       >
         <Text style={styles.primaryText}>Continue</Text>
       </Pressable>
-      <Text style={styles.note}>Notification permission will be explained in context when reminders are added. Notification Listener stays off unless you opt in later.</Text>
+      <Text style={styles.note}>Notification permission is explained on Home before Sorted asks. Notification Listener stays off unless you opt in later.</Text>
     </Screen>
   );
 }

@@ -1,5 +1,5 @@
 import type { Meeting, Project, ReviewState, Settings, Task } from '../domain/types';
-import { DEFAULT_SETTINGS } from '../domain/types';
+import { DEFAULT_REVIEW, DEFAULT_SETTINGS, normalizeReview } from '../domain/types';
 import { parseJsonRecord } from '../domain/parse';
 import { getDatabase } from './database';
 
@@ -30,8 +30,8 @@ export async function loadSnapshot(): Promise<{
     tasks: taskRows.map((r) => parseJsonRecord<Task>(r.json, 'task')).filter((t): t is Task => t != null && typeof t.id === 'string'),
     projects: projectRows.map((r) => parseJsonRecord<Project>(r.json, 'project')).filter((p): p is Project => p != null && typeof p.id === 'string'),
     meetings: meetingRows.map((r) => parseJsonRecord<Meeting>(r.json, 'meeting')).filter((m): m is Meeting => m != null && typeof m.id === 'string'),
-    settings: settings ?? DEFAULT_SETTINGS,
-    review: reviewRow ? parseJsonRecord<ReviewState>(reviewRow.value, 'review') ?? { sessions: 0, startedAt: null } : { sessions: 0, startedAt: null },
+    settings: settings ? { ...DEFAULT_SETTINGS, ...settings } : DEFAULT_SETTINGS,
+    review: normalizeReview(reviewRow ? parseJsonRecord<ReviewState>(reviewRow.value, 'review') : DEFAULT_REVIEW),
     schemaVersion: schemaRow ? Number(schemaRow.value) : 0,
     lastOpenedAt: openedRow?.value ?? null,
   };

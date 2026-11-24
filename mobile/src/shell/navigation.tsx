@@ -22,6 +22,7 @@ export function MainTabs() {
           headerShown: false,
           tabBarActiveTintColor: colors.accent,
           tabBarInactiveTintColor: colors.muted,
+          tabBarStyle: { minHeight: 56 },
         }}
       >
         <Tab.Screen name="Home" component={HomeScreen} />

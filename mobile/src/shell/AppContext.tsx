@@ -1,11 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
 import { addNetworkStateListener, getNetworkStateAsync } from 'expo-network';
-import type { CaptureSource, Meeting, Project, ReviewState, Settings, Task } from '../domain/types';
-import { DEFAULT_SETTINGS } from '../domain/types';
-import { createTask } from '../domain/task';
+import type { CaptureSource, Meeting, Project, ReviewState, Settings, Task, TaskState } from '../domain/types';
+import { DEFAULT_REVIEW, DEFAULT_SETTINGS } from '../domain/types';
+import { createTask, transition } from '../domain/task';
 import { inboxTitlesFromCapture, type CaptureDraft } from '../domain/capture';
-import { loadSnapshot, saveReview, saveSettings, upsertTask } from '../data/store';
+import { snoozeUntil } from '../domain/reminders';
+import { withCalendarEvent } from '../domain/calendarEvent';
+import { loadSnapshot, saveReview, saveSettings, upsertMeeting, upsertProject, upsertTask } from '../data/store';
+import { requestReminderPermission, syncDeviceReminders } from '../features/reminders/syncReminders';
+import { upsertTaskCalendarEvent } from '../features/calendar/deviceCalendar';
 
 type Snapshot = {
   tasks: Task[];
@@ -25,11 +29,23 @@ type AppContextValue = Snapshot & {
   online: boolean;
   captureOpen: boolean;
   pendingCapture: CaptureDraft | null;
+  editingTask: Task | null;
   openCapture: (draft?: CaptureDraft) => void;
   closeCapture: () => void;
+  openTask: (task: Task) => void;
+  closeTask: () => void;
   captureInbox: (title: string, fields?: { source?: CaptureSource; originalText?: string; sourceApp?: string | null }) => Promise<void>;
   captureDraft: (draft: CaptureInput) => Promise<number>;
-  completeOnboarding: (patch: Pick<Settings, 'weekend' | 'workStart' | 'workEnd'>) => Promise<void>;
+  saveTask: (task: Task) => Promise<void>;
+  placeTask: (task: Task, state: TaskState, fields?: Partial<Task> & { reason?: string }) => Promise<Task>;
+  saveProject: (project: Project) => Promise<void>;
+  saveMeeting: (meeting: Meeting) => Promise<void>;
+  saveReviewState: (review: ReviewState) => Promise<void>;
+  enableReminders: () => Promise<boolean>;
+  skipInboxUntil: (when: string) => Promise<void>;
+  addTaskToCalendar: (task: Task) => Promise<void>;
+  markExported: () => Promise<void>;
+  completeOnboarding: (patch: Pick<Settings, 'weekend' | 'workStart' | 'workEnd' | 'quietStart' | 'quietEnd'>) => Promise<void>;
   refresh: () => Promise<void>;
 };
 
@@ -41,12 +57,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [online, setOnline] = useState(true);
   const [captureOpen, setCaptureOpen] = useState(false);
   const [pendingCapture, setPendingCapture] = useState<CaptureDraft | null>(null);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [snapshot, setSnapshot] = useState<Snapshot>({
     tasks: [],
     projects: [],
     meetings: [],
     settings: DEFAULT_SETTINGS,
-    review: { sessions: 0, startedAt: null },
+    review: DEFAULT_REVIEW,
     schemaVersion: 0,
     lastOpenedAt: null,
   });
@@ -87,6 +104,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
       sub.remove();
     };
   }, []);
+
+  useEffect(() => {
+    if (!ready || !snapshot.settings.onboarded) return;
+    void syncDeviceReminders({
+      tasks: snapshot.tasks,
+      settings: snapshot.settings,
+      review: snapshot.review,
+      projects: snapshot.projects,
+    });
+  }, [ready, snapshot.meetings, snapshot.projects, snapshot.review, snapshot.settings, snapshot.tasks]);
 
   const openCapture = useCallback((draft?: CaptureDraft) => {
     setPendingCapture(draft ?? { text: '', source: 'typed', sourceApp: null });
@@ -131,8 +158,84 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [refresh],
   );
 
+  const saveTask = useCallback(
+    async (task: Task) => {
+      await upsertTask(task);
+      setEditingTask(task);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const placeTask = useCallback(
+    async (task: Task, state: TaskState, fields: Partial<Task> & { reason?: string } = {}) => {
+      const next = transition(task, state, fields);
+      await upsertTask(next);
+      setEditingTask(next);
+      await refresh();
+      return next;
+    },
+    [refresh],
+  );
+
+  const saveProject = useCallback(
+    async (project: Project) => {
+      await upsertProject(project);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const saveMeeting = useCallback(
+    async (meeting: Meeting) => {
+      await upsertMeeting(meeting);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const saveReviewState = useCallback(
+    async (review: ReviewState) => {
+      await saveReview(review);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const enableReminders = useCallback(async () => {
+    const granted = await requestReminderPermission();
+    const settings: Settings = { ...snapshot.settings, notificationsEnabled: granted };
+    await saveSettings(settings);
+    await refresh();
+    return granted;
+  }, [refresh, snapshot.settings]);
+
+  const skipInboxUntil = useCallback(
+    async (when: string) => {
+      await saveSettings({ ...snapshot.settings, inboxSkipUntil: when });
+      await refresh();
+    },
+    [refresh, snapshot.settings],
+  );
+
+  const addTaskToCalendar = useCallback(
+    async (task: Task) => {
+      const eventId = await upsertTaskCalendarEvent(task);
+      const next = withCalendarEvent(task, eventId);
+      await upsertTask(next);
+      setEditingTask(next);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const markExported = useCallback(async () => {
+    await saveSettings({ ...snapshot.settings, lastExportAt: new Date().toISOString() });
+    await refresh();
+  }, [refresh, snapshot.settings]);
+
   const completeOnboarding = useCallback(
-    async (patch: Pick<Settings, 'weekend' | 'workStart' | 'workEnd'>) => {
+    async (patch: Pick<Settings, 'weekend' | 'workStart' | 'workEnd' | 'quietStart' | 'quietEnd'>) => {
       const settings: Settings = { ...snapshot.settings, ...patch, onboarded: true };
       await saveSettings(settings);
       await saveReview(snapshot.review);
@@ -149,10 +252,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
       online,
       captureOpen,
       pendingCapture,
+      editingTask,
       openCapture,
       closeCapture,
+      openTask: setEditingTask,
+      closeTask: () => setEditingTask(null),
       captureInbox,
       captureDraft,
+      saveTask,
+      placeTask,
+      saveProject,
+      saveMeeting,
+      saveReviewState,
+      enableReminders,
+      skipInboxUntil,
+      addTaskToCalendar,
+      markExported,
       completeOnboarding,
       refresh,
     }),
@@ -163,10 +278,20 @@ export function AppProvider({ children }: { children: ReactNode }) {
       online,
       captureOpen,
       pendingCapture,
+      editingTask,
       openCapture,
       closeCapture,
       captureInbox,
       captureDraft,
+      saveTask,
+      placeTask,
+      saveProject,
+      saveMeeting,
+      saveReviewState,
+      enableReminders,
+      skipInboxUntil,
+      addTaskToCalendar,
+      markExported,
       completeOnboarding,
       refresh,
     ],
@@ -179,4 +304,9 @@ export function useApp() {
   const ctx = useContext(AppContext);
   if (!ctx) throw new Error('useApp must be used inside AppProvider');
   return ctx;
+}
+
+export function snoozeTaskStart(task: Task, from = new Date()): Partial<Task> & { reason: string } {
+  if (task.state !== 'Schedule now' || !task.start) return { reason: 'Snoozed from reminder' };
+  return { start: snoozeUntil(from, 15).toISOString(), reason: 'Snoozed from reminder' };
 }

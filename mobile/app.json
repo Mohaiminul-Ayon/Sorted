@@ -2,7 +2,7 @@
   "expo": {
     "name": "Sorted",
     "slug": "sorted",
-    "version": "0.1.2",
+    "version": "0.2.0",
     "scheme": "sorted",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -19,7 +19,15 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "RECEIVE_BOOT_COMPLETED",
+        "SCHEDULE_EXACT_ALARM",
+        "POST_NOTIFICATIONS",
+        "VIBRATE",
+        "READ_CALENDAR",
+        "WRITE_CALENDAR"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -27,6 +35,19 @@
     "plugins": [
       "expo-sqlite",
       "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "color": "#4A7C9B",
+          "defaultChannel": "sorted-quiet"
+        }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Sorted adds a calendar event only after you confirm a scheduled task."
+        }
+      ],
       [
         "expo-speech-recognition",
         {

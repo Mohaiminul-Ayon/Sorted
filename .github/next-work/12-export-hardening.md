@@ -14,3 +14,7 @@ A user exports before changing devices or clearing browser data and can verify t
 - Handle storage/export failures without discarding existing data.
 - Document browser-origin separation and safe transfer expectations.
 - Keep import/restore outside V1 unless the owner explicitly expands scope.
+
+## Implementation (code-complete)
+
+- JSON includes tasks (with history), projects, meetings, settings, review. CSV quotes formulas and Unicode. Settings remind when the last export is older than seven days. No import.
