@@ -1,9 +1,10 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
 import { addNetworkStateListener, getNetworkStateAsync } from 'expo-network';
-import type { Meeting, Project, ReviewState, Settings, Task } from '../domain/types';
+import type { CaptureSource, Meeting, Project, ReviewState, Settings, Task } from '../domain/types';
 import { DEFAULT_SETTINGS } from '../domain/types';
 import { createTask } from '../domain/task';
+import { inboxTitlesFromCapture, type CaptureDraft } from '../domain/capture';
 import { loadSnapshot, saveReview, saveSettings, upsertTask } from '../data/store';
 
 type Snapshot = {
@@ -16,11 +17,18 @@ type Snapshot = {
   lastOpenedAt: string | null;
 };
 
+export type CaptureInput = CaptureDraft & { originalText?: string };
+
 type AppContextValue = Snapshot & {
   ready: boolean;
   loadError: string;
   online: boolean;
-  captureInbox: (title: string) => Promise<void>;
+  captureOpen: boolean;
+  pendingCapture: CaptureDraft | null;
+  openCapture: (draft?: CaptureDraft) => void;
+  closeCapture: () => void;
+  captureInbox: (title: string, fields?: { source?: CaptureSource; originalText?: string; sourceApp?: string | null }) => Promise<void>;
+  captureDraft: (draft: CaptureInput) => Promise<number>;
   completeOnboarding: (patch: Pick<Settings, 'weekend' | 'workStart' | 'workEnd'>) => Promise<void>;
   refresh: () => Promise<void>;
 };
@@ -31,6 +39,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [online, setOnline] = useState(true);
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const [pendingCapture, setPendingCapture] = useState<CaptureDraft | null>(null);
   const [snapshot, setSnapshot] = useState<Snapshot>({
     tasks: [],
     projects: [],
@@ -78,11 +88,48 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const captureInbox = useCallback(async (title: string) => {
-    const task = createTask(title, { source: 'typed' });
-    await upsertTask(task);
-    await refresh();
-  }, [refresh]);
+  const openCapture = useCallback((draft?: CaptureDraft) => {
+    setPendingCapture(draft ?? { text: '', source: 'typed', sourceApp: null });
+    setCaptureOpen(true);
+  }, []);
+
+  const closeCapture = useCallback(() => {
+    setCaptureOpen(false);
+    setPendingCapture(null);
+  }, []);
+
+  const captureInbox = useCallback(
+    async (title: string, fields: { source?: CaptureSource; originalText?: string; sourceApp?: string | null } = {}) => {
+      const task = createTask(title, {
+        source: fields.source ?? 'typed',
+        originalText: fields.originalText ?? title.trim(),
+        sourceApp: fields.sourceApp ?? null,
+      });
+      await upsertTask(task);
+      await refresh();
+    },
+    [refresh],
+  );
+
+  const captureDraft = useCallback(
+    async (draft: CaptureInput) => {
+      const titles = inboxTitlesFromCapture(draft.text);
+      if (!titles.length) throw new Error('Give your task a title.');
+      const originalText = (draft.originalText ?? draft.text).trim();
+      for (const title of titles) {
+        await upsertTask(
+          createTask(title, {
+            source: draft.source,
+            originalText,
+            sourceApp: draft.sourceApp,
+          }),
+        );
+      }
+      await refresh();
+      return titles.length;
+    },
+    [refresh],
+  );
 
   const completeOnboarding = useCallback(
     async (patch: Pick<Settings, 'weekend' | 'workStart' | 'workEnd'>) => {
@@ -95,8 +142,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ ...snapshot, ready, loadError, online, captureInbox, completeOnboarding, refresh }),
-    [snapshot, ready, loadError, online, captureInbox, completeOnboarding, refresh],
+    () => ({
+      ...snapshot,
+      ready,
+      loadError,
+      online,
+      captureOpen,
+      pendingCapture,
+      openCapture,
+      closeCapture,
+      captureInbox,
+      captureDraft,
+      completeOnboarding,
+      refresh,
+    }),
+    [
+      snapshot,
+      ready,
+      loadError,
+      online,
+      captureOpen,
+      pendingCapture,
+      openCapture,
+      closeCapture,
+      captureInbox,
+      captureDraft,
+      completeOnboarding,
+      refresh,
+    ],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

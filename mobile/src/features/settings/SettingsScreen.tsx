@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
+import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 import { cacheDirectory, writeAsStringAsync } from 'expo-file-system/legacy';
 import * as Sharing from 'expo-sharing';
-import { useApp } from '../../app/AppContext';
+import { useApp } from '../../shell/AppContext';
 import { toCSV, toExportDocument } from '../../domain/exportDoc';
 import { colors, space } from '../../ui/theme';
 import { Screen } from '../../ui/Screen';
@@ -12,6 +13,28 @@ import { aiRequiresNetworkMessage, offlineStatusLabel } from '../../domain/netwo
 export function SettingsScreen() {
   const { settings, tasks, projects, meetings, review, online, schemaVersion, lastOpenedAt } = useApp();
   const [message, setMessage] = useState('');
+  const [voiceLanguages, setVoiceLanguages] = useState('Voice languages load when this device supports recognition.');
+
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      try {
+        if (!ExpoSpeechRecognitionModule.isRecognitionAvailable()) {
+          if (!cancelled) setVoiceLanguages('Voice capture is not available on this device.');
+          return;
+        }
+        const { locales, installedLocales } = await ExpoSpeechRecognitionModule.getSupportedLocales({});
+        const installed = installedLocales.length ? ` Offline: ${installedLocales.join(', ')}.` : '';
+        const listed = locales.length ? locales.join(', ') : 'device default (en-US fallback)';
+        if (!cancelled) setVoiceLanguages(`Voice languages: ${listed}.${installed}`);
+      } catch {
+        if (!cancelled) setVoiceLanguages('Voice languages are listed after a native install with speech recognition.');
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const writeAndShare = async (filename: string, contents: string) => {
     if (!cacheDirectory) throw new Error('This device has no place to write an export file.');
@@ -47,6 +70,7 @@ export function SettingsScreen() {
       <Text style={styles.note}>{offlineStatusLabel(online)}. Schema {schemaVersion}. Last opened {lastOpenedAt ? new Date(lastOpenedAt).toLocaleString() : 'this session'}.</Text>
       <Text style={styles.note}>There is no cloud backup. Export is your copy. App updates keep this SQLite file.</Text>
       <Text style={styles.note}>{aiRequiresNetworkMessage()}</Text>
+      <Text style={styles.note}>{voiceLanguages} Microphone access is requested only when you tap Speak.</Text>
       <Pressable style={styles.primary} onPress={() => void exportJson()} accessibilityLabel="Export all data as JSON">
         <Text style={styles.primaryText}>Export all data · JSON</Text>
       </Pressable>

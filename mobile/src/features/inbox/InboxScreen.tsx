@@ -1,19 +1,18 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useApp } from '../../app/AppContext';
-import { CaptureSheet } from '../capture/CaptureSheet';
+import { useApp } from '../../shell/AppContext';
 import { colors, space } from '../../ui/theme';
 import { Screen } from '../../ui/Screen';
 import { needsAttention } from '../../domain/task';
+import { describeCaptureSource } from '../../domain/capture';
 import type { TaskState } from '../../domain/types';
 
 const FILTERS = ['Inbox', 'Schedule now', 'Important', 'Someday', 'Done', 'Needs attention'] as const;
 type Filter = (typeof FILTERS)[number];
 
 export function InboxScreen() {
-  const { tasks } = useApp();
+  const { tasks, openCapture } = useApp();
   const [filter, setFilter] = useState<Filter>('Inbox');
-  const [open, setOpen] = useState(false);
   const list =
     filter === 'Needs attention'
       ? tasks.filter((t) => needsAttention(t))
@@ -29,7 +28,7 @@ export function InboxScreen() {
           </Pressable>
         ))}
       </ScrollView>
-      <Pressable onPress={() => setOpen(true)} style={styles.capture}>
+      <Pressable onPress={() => openCapture()} style={styles.capture}>
         <Text style={styles.captureText}>Capture</Text>
       </Pressable>
       <ScrollView>
@@ -37,11 +36,11 @@ export function InboxScreen() {
         {list.map((t) => (
           <View key={t.id} style={styles.card}>
             <Text style={styles.cardTitle}>{t.title}</Text>
-            <Text style={styles.cardMeta}>{t.source}</Text>
+            <Text style={styles.cardMeta}>{describeCaptureSource(t.source, t.sourceApp)}</Text>
+            {t.originalText && t.originalText !== t.title ? <Text style={styles.cardMeta}>{t.originalText}</Text> : null}
           </View>
         ))}
       </ScrollView>
-      <CaptureSheet visible={open} onClose={() => setOpen(false)} />
     </Screen>
   );
 }

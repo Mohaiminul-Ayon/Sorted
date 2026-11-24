@@ -1,15 +1,13 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useApp } from '../../app/AppContext';
-import { CaptureSheet } from '../capture/CaptureSheet';
+import { useApp } from '../../shell/AppContext';
 import { localDay, needsAttention } from '../../domain/task';
 import { offlineStatusLabel } from '../../domain/network';
 import { colors, space } from '../../ui/theme';
 import { Screen } from '../../ui/Screen';
 
 export function HomeScreen() {
-  const { tasks, meetings, online } = useApp();
-  const [open, setOpen] = useState(false);
+  const { tasks, meetings, online, openCapture } = useApp();
   const inbox = tasks.filter((t) => !t.deleted && t.state === 'Inbox');
   const today = useMemo(
     () =>
@@ -27,9 +25,9 @@ export function HomeScreen() {
         <Text style={styles.eyebrow}>{new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}</Text>
         <Text style={styles.device}>{offlineStatusLabel(online)}</Text>
         <Text style={styles.title}>A little less on your mind.</Text>
-        <Pressable style={styles.capture} onPress={() => setOpen(true)} accessibilityLabel="Quick capture">
+        <Pressable style={styles.capture} onPress={() => openCapture()} accessibilityLabel="Quick capture">
           <Text style={styles.captureTitle}>Capture a thought</Text>
-          <Text style={styles.captureHint}>Title only. Sort it when you have a moment.</Text>
+          <Text style={styles.captureHint}>Type, speak, or share into Inbox. Sort it when you have a moment.</Text>
         </Pressable>
         <View style={styles.counts}>
           <View style={styles.countCard}>
@@ -53,7 +51,6 @@ export function HomeScreen() {
           </View>
         ) : null}
       </ScrollView>
-      <CaptureSheet visible={open} onClose={() => setOpen(false)} />
     </Screen>
   );
 }

@@ -4,6 +4,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AppProvider, useApp } from './AppContext';
 import { MainTabs } from './navigation';
 import { OnboardingScreen } from '../features/onboarding/OnboardingScreen';
+import { CaptureSheet } from '../features/capture/CaptureSheet';
+import { ShareCaptureListener } from '../features/capture/ShareCaptureListener';
 import { colors } from '../ui/theme';
 
 function Gate() {
@@ -25,8 +27,21 @@ function Gate() {
       </View>
     );
   }
-  if (!settings.onboarded) return <OnboardingScreen />;
-  return <MainTabs />;
+  if (!settings.onboarded) {
+    return (
+      <>
+        <ShareCaptureListener />
+        <OnboardingScreen />
+      </>
+    );
+  }
+  return (
+    <>
+      <ShareCaptureListener />
+      <MainTabs />
+      <CaptureSheet />
+    </>
+  );
 }
 
 export function AppRoot() {

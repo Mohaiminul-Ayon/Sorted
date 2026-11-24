@@ -16,7 +16,7 @@ Authoritative product requirements: [docs/PRD.md](docs/PRD.md) and `Sorted — B
 | `mobile/src/domain/` | Task/Project/Meeting rules (pure TS, unit-tested) |
 | `mobile/src/data/` | SQLite persistence |
 | `mobile/src/features/` | One folder per feature (onboarding, capture, home, inbox, …) |
-| `mobile/src/app/` | Navigation and app state |
+| `mobile/src/shell/` | Navigation and app state |
 | `postman/specs/` | Canonical JSON export contract (OpenAPI) |
 | `src/` | Frozen Vite UX reference — no active development |
 | `server/` | Optional loopback Gemini backend for prototype AI demos |

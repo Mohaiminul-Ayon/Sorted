@@ -1,5 +1,5 @@
 import { StyleSheet, Text } from 'react-native';
-import { useApp } from '../../app/AppContext';
+import { useApp } from '../../shell/AppContext';
 import { colors, space } from '../../ui/theme';
 import { Screen } from '../../ui/Screen';
 
