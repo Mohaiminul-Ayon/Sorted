@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
-import { useApp } from '../../app/AppContext';
+import { useApp } from '../../shell/AppContext';
 import { isClock } from '../../domain/parse';
 import { colors, space } from '../../ui/theme';
 import { Screen } from '../../ui/Screen';

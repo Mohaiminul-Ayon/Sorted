@@ -2,7 +2,8 @@
   "expo": {
     "name": "Sorted",
     "slug": "sorted",
-    "version": "0.1.1",
+    "version": "0.1.2",
+    "scheme": "sorted",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -26,6 +27,23 @@
     "plugins": [
       "expo-sqlite",
       "expo-sharing",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Sorted uses the microphone only when you tap Speak, to turn your words into an Inbox title.",
+          "speechRecognitionPermission": "Sorted uses on-device speech recognition only when you tap Speak."
+        }
+      ],
+      [
+        "expo-share-intent",
+        {
+          "androidIntentFilters": ["text/*"],
+          "iosActivationRules": {
+            "NSExtensionActivationSupportsText": true,
+            "NSExtensionActivationSupportsWebURLWithMaxCount": 1
+          }
+        }
+      ],
       [
         "expo-build-properties",
         {
