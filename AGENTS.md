@@ -12,12 +12,18 @@ Authoritative product requirements: [docs/PRD.md](docs/PRD.md) and `Sorted — B
 | --- | --- |
 | `Sorted — Business Requirements Document v1.3.docx` | Client BRD reference |
 | `docs/PRD.md` | Consolidated requirements (client V1 + labeled AI extras) |
-| `src/` | **Vite React UX prototype only** — not production V1 |
+| `mobile/` | **React Native (Expo) client app** — production V1 |
+| `mobile/src/domain/` | Task/Project/Meeting rules (pure TS, unit-tested) |
+| `mobile/src/data/` | SQLite persistence |
+| `mobile/src/features/` | One folder per feature (onboarding, capture, home, inbox, …) |
+| `mobile/src/app/` | Navigation and app state |
+| `postman/specs/` | Canonical JSON export contract (OpenAPI) |
+| `src/` | Frozen Vite UX reference — no active development |
 | `server/` | Optional loopback Gemini backend for prototype AI demos |
 | `.github/next-work/` | Planned native Android work (reminders, calendar, foundation, etc.) |
 | `docs/AI_SETUP.md` | Local prototype AI configuration |
 
-When the React Native app scaffold is added, document its module layout, build, and test commands in this file. Do not treat `src/` browser storage or GitHub Pages as the shipped product.
+Do not treat `src/` browser storage or GitHub Pages as the shipped product.
 
 ## Build, test, and development (prototype)
 
@@ -34,7 +40,15 @@ npm start
 - `npm run dev` — Vite dev server only
 - Provider keys belong in root `.env.local` (see `.env.example`); never commit keys or embed them in the client bundle
 
-Android app build commands will be added when the React Native project exists.
+Client app (`mobile/`):
+
+```powershell
+cd mobile
+npm test
+npx expo start
+```
+
+A debug APK needs Android SDK + `npx expo run:android` (or EAS). Minimum API 26 (`app.sorted.v1`).
 
 ## Coding style and naming
 
@@ -57,3 +71,7 @@ Pull requests should reference requirements (FR/EX IDs or BRD section), report v
 ## Product scope and privacy
 
 V1 stays local and offline for core features. No accounts, cloud task sync, or telemetry. Notification Listener is optional and **off by default**; persist notification content only after the user accepts a suggestion. Do not commit real personal task data or API keys. Resolve BRD open items that block dependent behavior (see PRD section 8) before implementing those features in production.
+
+<API_TASKS>
+Before responding to any non-trivial API engineering task — designing, implementing, mocking, testing, monitoring, documenting, or deploying an API or Postman Flow — read `postman/skills/api-engineer/SKILL.md` and follow it. It is the default entry point for API work in this repository. Pure questions and trivial one-line edits do not need it.
+</API_TASKS>

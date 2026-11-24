@@ -1,0 +1,9 @@
+$kind: collection
+name: Sorted data contract
+description: |
+  Runnable examples of the V1 export document. Core product is local SQLite, not HTTP.
+  Future AI endpoints live in a separate collection and must not be required for Inbox capture.
+variables:
+  - key: schemaVersion
+    value: '1'
+order: 1000
