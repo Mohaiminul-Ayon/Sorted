@@ -58,3 +58,13 @@ test('CSV and JSON export match the data contract', () => {
 test('local dates retain local day', () => {
   assert.equal(localDay(new Date(2026, 0, 2, 0, 1)), '2026-01-02');
 });
+
+test('parseJsonRecord skips corrupt JSON and isClock validates hours', async () => {
+  const { parseJsonRecord, isClock } = await import('./parse');
+  assert.equal(parseJsonRecord('{"id":"a"}', 'task')?.id, 'a');
+  assert.equal(parseJsonRecord('{', 'task'), null);
+  assert.equal(parseJsonRecord('null', 'task'), null);
+  assert.equal(isClock('09:00'), true);
+  assert.equal(isClock('24:00'), false);
+  assert.equal(isClock('9:00'), false);
+});

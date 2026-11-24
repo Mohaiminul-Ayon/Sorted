@@ -3,18 +3,24 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useApp } from '../../app/AppContext';
 import { CaptureSheet } from '../capture/CaptureSheet';
 import { colors, space } from '../../ui/theme';
+import { Screen } from '../../ui/Screen';
+import { needsAttention } from '../../domain/task';
 import type { TaskState } from '../../domain/types';
 
-const FILTERS: TaskState[] = ['Inbox', 'Schedule now', 'Important', 'Someday', 'Done'];
+const FILTERS = ['Inbox', 'Schedule now', 'Important', 'Someday', 'Done', 'Needs attention'] as const;
+type Filter = (typeof FILTERS)[number];
 
 export function InboxScreen() {
   const { tasks } = useApp();
-  const [filter, setFilter] = useState<TaskState>('Inbox');
+  const [filter, setFilter] = useState<Filter>('Inbox');
   const [open, setOpen] = useState(false);
-  const list = tasks.filter((t) => !t.deleted && t.state === filter);
+  const list =
+    filter === 'Needs attention'
+      ? tasks.filter((t) => needsAttention(t))
+      : tasks.filter((t) => !t.deleted && t.state === (filter as TaskState));
 
   return (
-    <View style={styles.wrap}>
+    <Screen>
       <Text style={styles.title}>Let’s make a little room.</Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filters}>
         {FILTERS.map((f) => (
@@ -36,12 +42,11 @@ export function InboxScreen() {
         ))}
       </ScrollView>
       <CaptureSheet visible={open} onClose={() => setOpen(false)} />
-    </View>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { flex: 1, backgroundColor: colors.bg, padding: space.l },
   title: { fontSize: 24, color: colors.ink, fontWeight: '600', marginBottom: space.m },
   filters: { flexGrow: 0, marginBottom: space.m },
   chip: { marginRight: 8, paddingVertical: 8, paddingHorizontal: 12, backgroundColor: colors.paper, borderRadius: 16 },
