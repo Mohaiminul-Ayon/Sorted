@@ -14,6 +14,7 @@ type Snapshot = {
 
 type AppContextValue = Snapshot & {
   ready: boolean;
+  loadError: string;
   captureInbox: (title: string) => Promise<void>;
   completeOnboarding: (patch: Pick<Settings, 'weekend' | 'workStart' | 'workEnd'>) => Promise<void>;
   refresh: () => Promise<void>;
@@ -23,6 +24,7 @@ const AppContext = createContext<AppContextValue | null>(null);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
+  const [loadError, setLoadError] = useState('');
   const [snapshot, setSnapshot] = useState<Snapshot>({
     tasks: [],
     projects: [],
@@ -32,9 +34,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   });
 
   const refresh = useCallback(async () => {
-    const next = await loadSnapshot();
-    setSnapshot(next);
-    setReady(true);
+    try {
+      const next = await loadSnapshot();
+      setSnapshot(next);
+      setLoadError('');
+      setReady(true);
+    } catch (e) {
+      setLoadError(e instanceof Error ? e.message : 'Your plan could not be opened.');
+      setReady(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -58,8 +66,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   );
 
   const value = useMemo(
-    () => ({ ...snapshot, ready, captureInbox, completeOnboarding, refresh }),
-    [snapshot, ready, captureInbox, completeOnboarding, refresh],
+    () => ({ ...snapshot, ready, loadError, captureInbox, completeOnboarding, refresh }),
+    [snapshot, ready, loadError, captureInbox, completeOnboarding, refresh],
   );
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

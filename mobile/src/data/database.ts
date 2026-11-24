@@ -10,11 +10,10 @@ export function getDatabase(): Promise<SQLite.SQLiteDatabase> {
       await db.execAsync('PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON;');
       await db.execAsync(SCHEMA_SQL);
       return db;
-    })();
+    })().catch((error) => {
+      dbPromise = null;
+      throw error;
+    });
   }
   return dbPromise;
-}
-
-export async function resetDatabaseForTests(): Promise<void> {
-  dbPromise = null;
 }

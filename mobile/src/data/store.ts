@@ -1,8 +1,7 @@
 import type { Meeting, Project, ReviewState, Settings, Task } from '../domain/types';
 import { DEFAULT_SETTINGS } from '../domain/types';
+import { parseJsonRecord } from '../domain/parse';
 import { getDatabase } from './database';
-
-const parse = <T>(json: string): T => JSON.parse(json) as T;
 
 export async function loadSnapshot(): Promise<{
   tasks: Task[];
@@ -17,12 +16,18 @@ export async function loadSnapshot(): Promise<{
   const meetingRows = await db.getAllAsync<{ json: string }>('SELECT json FROM meetings');
   const settingsRow = await db.getFirstAsync<{ json: string }>('SELECT json FROM settings WHERE id = 1');
   const reviewRow = await db.getFirstAsync<{ value: string }>('SELECT value FROM meta WHERE key = ?', ['review']);
+
+  const settings = settingsRow ? parseJsonRecord<Settings>(settingsRow.json, 'settings') : null;
+  if (!settingsRow || !settings) {
+    await saveSettings(DEFAULT_SETTINGS);
+  }
+
   return {
-    tasks: taskRows.map((r) => parse<Task>(r.json)),
-    projects: projectRows.map((r) => parse<Project>(r.json)),
-    meetings: meetingRows.map((r) => parse<Meeting>(r.json)),
-    settings: settingsRow ? parse<Settings>(settingsRow.json) : DEFAULT_SETTINGS,
-    review: reviewRow ? parse<ReviewState>(reviewRow.value) : { sessions: 0, startedAt: null },
+    tasks: taskRows.map((r) => parseJsonRecord<Task>(r.json, 'task')).filter((t): t is Task => t != null && typeof t.id === 'string'),
+    projects: projectRows.map((r) => parseJsonRecord<Project>(r.json, 'project')).filter((p): p is Project => p != null && typeof p.id === 'string'),
+    meetings: meetingRows.map((r) => parseJsonRecord<Meeting>(r.json, 'meeting')).filter((m): m is Meeting => m != null && typeof m.id === 'string'),
+    settings: settings ?? DEFAULT_SETTINGS,
+    review: reviewRow ? parseJsonRecord<ReviewState>(reviewRow.value, 'review') ?? { sessions: 0, startedAt: null } : { sessions: 0, startedAt: null },
   };
 }
 
