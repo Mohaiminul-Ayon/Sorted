@@ -1,0 +1,228 @@
+openapi: 3.1.0
+info:
+  title: Sorted local data contract
+  version: 1.0.0
+  description: |
+    Canonical JSON document for Sorted V1 (React Native, offline).
+    This is not a cloud HTTP API. The Android app persists the same shapes in SQLite
+    and writes this document on export. Future AI (EX-*) is a separate HTTPS surface
+    and must not be required for core capture.
+
+    Issue #2 implements persist + Inbox capture + onboarding + export of this document.
+paths: {}
+components:
+  schemas:
+    TaskState:
+      type: string
+      enum: [Inbox, Schedule now, Important, Someday, Done]
+    Energy:
+      type: string
+      enum: [High, Medium, Low]
+    ProjectContext:
+      type: string
+      enum: [Work, Family, Personal]
+    CaptureSource:
+      type: string
+      enum: [typed, voice, shared, notification]
+    HistoryEntry:
+      type: object
+      required: [from, to, time]
+      properties:
+        from:
+          $ref: '#/components/schemas/TaskState'
+        to:
+          $ref: '#/components/schemas/TaskState'
+        time:
+          type: string
+          format: date-time
+    RescheduleEntry:
+      type: object
+      required: [reason, time]
+      properties:
+        oldSlot:
+          type: [string, 'null']
+        newSlot:
+          type: [string, 'null']
+        reason:
+          type: string
+        time:
+          type: string
+          format: date-time
+    Task:
+      type: object
+      required: [id, title, state, originalText, source, createdAt, updatedAt, deleted, history, reschedules]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          minLength: 1
+        state:
+          $ref: '#/components/schemas/TaskState'
+        originalText:
+          type: string
+        source:
+          $ref: '#/components/schemas/CaptureSource'
+        sourceApp:
+          type: [string, 'null']
+        priority:
+          type: string
+        projectId:
+          type: [string, 'null']
+          format: uuid
+        meetingId:
+          type: [string, 'null']
+          format: uuid
+        start:
+          type: [string, 'null']
+        duration:
+          type: [number, 'null']
+        energy:
+          oneOf:
+            - $ref: '#/components/schemas/Energy'
+            - type: 'null'
+        prerequisiteNote:
+          type: [string, 'null']
+        calendarEventId:
+          type: [string, 'null']
+        completedAt:
+          type: [string, 'null']
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deleted:
+          type: boolean
+        history:
+          type: array
+          items:
+            $ref: '#/components/schemas/HistoryEntry'
+        reschedules:
+          type: array
+          items:
+            $ref: '#/components/schemas/RescheduleEntry'
+    Project:
+      type: object
+      required: [id, name, context, status, createdAt, updatedAt, deleted]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        description:
+          type: [string, 'null']
+        targetDate:
+          type: [string, 'null']
+        context:
+          $ref: '#/components/schemas/ProjectContext'
+        status:
+          type: string
+          enum: [Active, Archived]
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deleted:
+          type: boolean
+    Meeting:
+      type: object
+      required: [id, title, startsAt, createdAt, updatedAt, deleted]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        startsAt:
+          type: string
+        notes:
+          type: [string, 'null']
+        participants:
+          type: [string, 'null']
+        projectId:
+          type: [string, 'null']
+          format: uuid
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        deleted:
+          type: boolean
+    Settings:
+      type: object
+      required: [weekend, workStart, workEnd, quietStart, quietEnd, onboarded]
+      properties:
+        weekend:
+          type: string
+          enum: [Friday, Saturday, Sunday]
+        workStart:
+          type: string
+          example: '09:00'
+        workEnd:
+          type: string
+        quietStart:
+          type: string
+        quietEnd:
+          type: string
+        notificationListenerEnabled:
+          type: boolean
+          default: false
+        retainAiContext:
+          type: boolean
+          default: true
+        onboarded:
+          type: boolean
+    ReviewState:
+      type: object
+      required: [sessions, startedAt]
+      properties:
+        sessions:
+          type: integer
+          minimum: 0
+        startedAt:
+          type: [string, 'null']
+          format: date-time
+    ExportDocument:
+      type: object
+      required: [schemaVersion, exportedAt, tasks, projects, meetings, settings, review]
+      properties:
+        schemaVersion:
+          type: integer
+          const: 1
+        exportedAt:
+          type: string
+          format: date-time
+        tasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+        projects:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+        meetings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Meeting'
+        settings:
+          $ref: '#/components/schemas/Settings'
+        review:
+          $ref: '#/components/schemas/ReviewState'
+    ReadinessError:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          enum: [missing_start, missing_duration, missing_energy, blank_title]
+        message:
+          type: string
