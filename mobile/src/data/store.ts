@@ -9,6 +9,8 @@ export async function loadSnapshot(): Promise<{
   meetings: Meeting[];
   settings: Settings;
   review: ReviewState;
+  schemaVersion: number;
+  lastOpenedAt: string | null;
 }> {
   const db = await getDatabase();
   const taskRows = await db.getAllAsync<{ json: string }>('SELECT json FROM tasks');
@@ -16,6 +18,8 @@ export async function loadSnapshot(): Promise<{
   const meetingRows = await db.getAllAsync<{ json: string }>('SELECT json FROM meetings');
   const settingsRow = await db.getFirstAsync<{ json: string }>('SELECT json FROM settings WHERE id = 1');
   const reviewRow = await db.getFirstAsync<{ value: string }>('SELECT value FROM meta WHERE key = ?', ['review']);
+  const schemaRow = await db.getFirstAsync<{ value: string }>('SELECT value FROM meta WHERE key = ?', ['schemaVersion']);
+  const openedRow = await db.getFirstAsync<{ value: string }>('SELECT value FROM meta WHERE key = ?', ['lastOpenedAt']);
 
   const settings = settingsRow ? parseJsonRecord<Settings>(settingsRow.json, 'settings') : null;
   if (!settingsRow || !settings) {
@@ -28,6 +32,8 @@ export async function loadSnapshot(): Promise<{
     meetings: meetingRows.map((r) => parseJsonRecord<Meeting>(r.json, 'meeting')).filter((m): m is Meeting => m != null && typeof m.id === 'string'),
     settings: settings ?? DEFAULT_SETTINGS,
     review: reviewRow ? parseJsonRecord<ReviewState>(reviewRow.value, 'review') ?? { sessions: 0, startedAt: null } : { sessions: 0, startedAt: null },
+    schemaVersion: schemaRow ? Number(schemaRow.value) : 0,
+    lastOpenedAt: openedRow?.value ?? null,
   };
 }
 
